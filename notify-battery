@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Notifies when battery percentage is above 90%, or below 30%. Hibernates when below 10%.
+# I run this script as a cronjob every 5 minutes
+
+# The name for your battery device
+BAT='BAT1'
+# Levels at which to perform actions
+MAX=90		# Notify that the battery level is high
+ALERT=30	# Notify that the battery level is low
+MIN=10		# Hibernate because the battery is too low
+
+# Get important attributes
+CAPACITY=$(cat /sys/class/power_supply/$BAT/capacity)
+STATUS=$(cat /sys/class/power_supply/$BAT/status)
+
+# This ensures that notify-send works
+DISPLAY=":0.0"
+export DISPLAY
+userid=$(id -u)
+XDG_RUNTIME_DIR="/run/user/$userid"
+export XDG_RUNTIME_DIR
+# I didn't have to do anything shifty with dbus, so I didn't
+
+if [[ $STATUS == 'Charging' ]]; then
+	if [[ $CAPACITY -ge $MAX ]]; then
+		notify-send -a Battery -u normal -e "Battery charged" "Battery level: ${CAPACITY}"
+	fi
+else
+	if [[ $CAPACITY -le $MIN ]]; then
+		loginctl hibernate
+	elif [[ $CAPACITY -le $ALERT ]]; then
+		notify-send -a Battery -u critical -e "Battery low" "Battery level: ${CAPACITY}"
+	fi
+fi
+

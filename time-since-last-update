@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Notifies the time since the last sync with portage repos. This generally mimics the last time that portage was updated.
+
+# Set alert to a week from last update
+ALERT=7
+
+# Location of metadata information
+# Apparently this used to be /usr/portage
+PORTDIR="/var/db/repos/gentoo"
+# Get the last sync date and compute days since last update
+UPDATED=$(date -d "$( cat $PORTDIR/metadata/timestamp.chk )" +%s)
+TODAY=$(date +%s)
+DIFF_DAYS=$((($TODAY - $UPDATED) / 86400))
+
+
+# This ensures that notify-send works
+DISPLAY=":0.0"
+export DISPLAY
+userid=$(id -u)
+XDG_RUNTIME_DIR="/run/user/$userid"
+export XDG_RUNTIME_DIR
+
+if [[ $DIFF_DAYS -lt $ALERT ]]; then
+	notify-send -a Portage -u normal "Portage" "${DIFF_DAYS} days since last sync."
+else
+	notify-send -a Portage -u critical "Portage" "${DIFF_DAYS} days since last sync. Update soon."
+	# TO-DO: add action to update system
+fi

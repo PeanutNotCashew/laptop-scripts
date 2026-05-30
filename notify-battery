@@ -22,7 +22,7 @@ XDG_RUNTIME_DIR="/run/user/$userid"
 export XDG_RUNTIME_DIR
 # I didn't have to do anything shifty with dbus, so I didn't
 
-if [[ $STATUS == 'Charging' ]]; then
+if [[ $STATUS != 'Discharging' ]]; then
 	if [[ $CAPACITY -ge $MAX ]]; then
 		notify-send -a Battery -u normal -e "Battery charged" "Battery level: ${CAPACITY}"
 	fi
